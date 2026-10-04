@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Tri-Utsav 2026 · Bal Vidya Mandir</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-database-compat.js"></script>
+<style>
+:root{--ink:#1d2433;--mut:#667085;--bg:#f4f1ec;--card:#fff;--line:#e6e1d8;--p:#0f5c4d;--pd:#093f35;--gold:#d9a21b;--ok:#15803d;--warn:#b45309;--err:#b91c1c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+header{background:var(--pd);color:#fff;padding:.8rem 1rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;border-bottom:4px solid var(--gold)}
+header h1{font-size:1.1rem}header small{opacity:.8;font-size:.75rem}
+.dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:var(--err);margin-right:.35rem}.dot.on{background:#4ade80}
+nav{display:flex;gap:.3rem}nav button{background:rgba(255,255,255,.14);color:#fff;padding:.45rem .8rem}
+nav button.on{background:#fff;color:var(--pd)}
+main{max-width:1100px;margin:0 auto;padding:1rem}
+.panel{display:none}.panel.on{display:block}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:1rem}
+h2{font-size:1rem;color:var(--p);margin-bottom:.7rem}
+label{display:block;font-size:.78rem;font-weight:600;color:var(--mut);margin-bottom:.15rem}
+input,select{width:100%;max-width:340px;padding:.5rem .65rem;border:1px solid var(--line);border-radius:6px;font-size:.95rem}
+button{padding:.5rem .9rem;border:0;border-radius:6px;background:var(--p);color:#fff;font-weight:600;font-size:.88rem;cursor:pointer}
+button:disabled{opacity:.45}button.g{background:#475569}button.a{background:#c2410c}button.s{padding:.25rem .55rem;font-size:.76rem}
+.row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;margin-bottom:.6rem}
+.msg{margin-top:.5rem;padding:.5rem .7rem;border-radius:6px;background:#eef2f1;white-space:pre-wrap;font-size:.86rem;display:none}.msg.show{display:block}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:.8rem}
+.tile{border-radius:10px;padding:.9rem;text-align:center;background:#eef6f3}
+.tile b{display:block;font-size:2.2rem;line-height:1.1;color:var(--p)}.tile span{font-size:.78rem;color:var(--mut)}
+.tile.en{background:var(--p)}.tile.en b,.tile.en span{color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.6rem}
+.gc{border:1px solid var(--line);border-radius:8px;padding:.65rem}.gc h3{font-size:.84rem}.gc .n{font-weight:700;color:var(--p)}
+.bar{height:6px;background:#e5e7eb;border-radius:3px;margin:.3rem 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--gold);transition:width .5s}
+.gc .act{display:flex;gap:.3rem;margin-top:.4rem;flex-wrap:wrap}
+.tw{overflow:auto;max-height:420px}
+table{width:100%;border-collapse:collapse;font-size:.84rem}th,td{padding:.4rem .5rem;border-bottom:1px solid var(--line);text-align:left}
+th{position:sticky;top:0;background:#faf8f4;font-size:.72rem;color:var(--mut)}
+tr.new td{background:#fef9c3;animation:fade 6s forwards}@keyframes fade{to{background:transparent}}
+.hint{font-size:.8rem;color:var(--mut);margin-bottom:.5rem}
+#panel-scan{background:#0b1116;color:#e8eef5;margin:-1rem;padding:1rem;min-height:90vh}
+.sw{max-width:480px;margin:0 auto}#reader{width:100%;border-radius:12px;overflow:hidden;background:#000}
+#idle{text-align:center;color:#8b9cb3;margin:.7rem 0}
+.sb{display:none;margin-top:.8rem;border-radius:12px;padding:1rem;text-align:center}
+.sb.ok{background:#14532d}.sb.good{background:#166534}.sb.dup{background:#78350f}.sb.bad{background:#7f1d1d}
+.sb h3{font-size:1.2rem;margin-bottom:.5rem}.nm{font-size:1.45rem;font-weight:800}.inf{font-size:1rem;line-height:1.6;margin-top:.3rem}
+.big{width:100%;padding:1rem;margin-top:.6rem;font-size:1.1rem;border-radius:10px;background:#22c55e;color:#052e16;font-weight:800}
+.dark{background:#1a2430;border-radius:10px;padding:.7rem;margin-top:.8rem}.dark label{color:#8b9cb3}
+.dark input{background:#0f172a;color:#fff;border-color:#334155;max-width:none}
+#gate{font-size:1.5rem;letter-spacing:.3em;text-align:center;font-weight:700}
+@media(max-width:560px){.tile b{font-size:1.6rem}}
+</style></head>
+<body>
+<header>
+  <div><h1>Bal Vidya Mandir — Tri-Utsav 2026</h1><small><span id="dot" class="dot"></span><span id="dbt">Connecting…</span></small></div>
+  <nav id="nav"><button data-p="admin" class="on">Admin</button><button data-p="scan">Gate Scanner</button><button data-p="setup">Setup</button></nav>
+</header>
+<main>
+<div id="panel-admin" class="panel on">
+  <section style="border:2px solid var(--gold)"><h2>Select event — everything below works for this event only</h2>
+    <div class="row"><div><label>Event</label><select id="ev" style="max-width:480px"></select></div><b id="evCnt"></b></div>
+  </section>
+  <section><h2>Live entry — <span id="leEv"></span></h2>
+    <div class="tiles"><div class="tile en"><b id="tEn">0</b><span>Entered</span></div><div class="tile"><b id="tLeft">0</b><span>Still to enter</span></div><div class="tile"><b id="tAll">0</b><span>Total invited</span></div></div>
+    <div id="entGrid" class="grid"></div>
+  </section>
+  <section><h2>Entered list — <span id="elEv"></span> (latest first)</h2>
+    <div class="row"><div><label>Search any student: name / admission no. / class / mobile / parent</label><input id="enF" placeholder="Type to check if someone has entered" style="max-width:420px"></div></div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Father / Mother</th><th>Status</th><th>Gate</th><th>Time</th></tr></thead><tbody id="enBody"></tbody></table></div>
+  </section>
+  <section><h2>1. Upload Excel for the selected event</h2>
+    <p class="hint">Choose the event above, then pick that event's Excel (any file name). Columns: AdmissionNo, Name, Class, Section, Mobile, FatherName, MotherName.</p>
+    <div class="row"><div><label>Excel file</label><input type="file" id="xf" accept=".xlsx,.xls"></div><button class="a" id="btnUp">Upload to this event</button><button id="btnClr" style="background:#b91c1c">Clear this event's list</button></div>
+    <div id="upM" class="msg"></div>
+  </section>
+  <section><h2>2. Cards — <span id="cEv"></span></h2>
+    <p class="hint">Cards are built on demand for the selected event only. Footer Y / QR Y: a higher number moves it lower on the card. Footer size is the font size of the English and Hindi line.</p>
+    <div class="row"><b id="cStat"></b></div>
+    <div class="row"><div><label>QR Y</label><input id="qyI" type="number" style="width:100px"></div><div><label>Footer Y</label><input id="fyI" type="number" style="width:100px"></div><div><label>Footer size</label><input id="fsI" type="number" style="width:100px"></div><button class="g" id="btnPos">Save &amp; preview</button></div>
+    <div class="row"><button class="g" data-a="prev">Preview card</button><button data-a="zip">ZIP all cards of this event</button><button id="btnRmCard" style="background:#b91c1c">Remove blank card</button></div>
+    <div id="cardM" class="msg"></div><div id="prev" style="margin:.6rem 0"></div>
+    <label>Students uploaded for this event</label>
+    <div class="tw"><table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Father / Mother</th><th>Mobile</th><th>Status</th></tr></thead><tbody id="evList"></tbody></table></div>
+  </section>
+  <section><h2>3. WhatsApp queue</h2>
+    <p class="hint">On a phone: tap <b>Share card</b> → choose WhatsApp → pick the parent's chat (check the mobile number shown) → Send. The student is marked sent automatically and disappears from every device's list.</p>
+    <div class="row"><div><label>Your name</label><input id="op" placeholder="e.g. Priya"></div><b>Event: <span id="qEv"></span></b><b>Pending: <span id="pend">0</span></b></div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Mobile</th><th></th></tr></thead><tbody id="qBody"></tbody></table></div>
+  </section>
+</div>
+
+<div id="panel-scan" class="panel"><div class="sw">
+  <div id="reader"></div><div id="idle">Ready to scan… / स्कैन के लिए तैयार</div>
+  <div class="dark" style="margin:.6rem 0 0"><label>Gate code (saved on this phone)</label><input id="gate" inputmode="numeric" maxlength="3" placeholder="•••">
+    <div style="margin-top:.4rem;font-size:.85rem;color:#8b9cb3">Live, all gates: <b id="scCnt" style="color:#4ade80">0 / 0</b> entered</div></div>
+  <div id="sb" class="sb"><h3 id="sT"></h3><div id="sI"></div><button class="big" id="btnEnter" style="display:none">PARENTS ENTERED — CONFIRM / प्रवेश दें</button></div>
+  <div class="dark"><label>Damaged QR? Type admission no., mobile or name</label>
+    <div class="row" style="margin:0"><input id="man"><button id="btnMan">Search</button></div></div>
+  <div class="dark"><label>Last 5 entries</label><div id="mini" style="font-size:.85rem"></div></div>
+</div></div>
+
+<div id="panel-setup" class="panel">
+  <section><h2>Card images &amp; QR position</h2>
+    <p class="hint">Upload the blank invitation card for each group (large images are compressed automatically).</p>
+    <div id="setList"></div><div id="setM" class="msg"></div>
+  </section>
+  <section><h2>Move old data (one time)</h2>
+    <p class="hint">If you uploaded students in the earlier version, copy them (with WhatsApp-sent and entry status) into the new light structure.</p>
+    <button class="g" id="btnMig">Migrate old data</button><div id="migM" class="msg"></div>
+  </section>
+</div>
+</main>
+
+<script>
+(()=>{'use strict';
+const EV=[['Rudbhoomi_08Oct_9to11AM','Rudbhoomi - Sports Fiesta','08 October','09:00 to 11:00 AM','School Ground'],['Abhyuday_08Oct_4to6PM','Abhyuday - Cultural Fiesta','08 October','04:00 to 06:00 PM','Auditorium'],['Alish_09Oct_9to11AM','Alish - Junior Sports Fiesta','09 October','09:00 to 11:00 AM','School Ground'],['Rudbhoomi_09Oct_1230to230PM','Rudbhoomi - Sports Fiesta','09 October','12:30 to 02:30 PM','School Ground'],['Abhyuday_09Oct_4to6PM','Abhyuday - Cultural Fiesta','09 October','04:00 to 06:00 PM','Auditorium'],['Utsav_10Oct_10to1230PM','Utsav - Fun Carnival','10 October','10:00 AM to 12:30 PM','School Ground'],['Utsav_10Oct_130to400PM','Utsav - Fun Carnival','10 October','01:30 to 04:00 PM','School Ground']];
+const G={};EV.forEach(([id,n,d,t,v])=>G[id]={id,n,d,t,v,qx:495,qy:1120,qs:250});
+const IDS=Object.keys(G);
+const HI_V={'School Ground':'विद्यालय मैदान','Auditorium':'सभागार'};
+const cap=g=>{const hd=g.d.replace('October','अक्टूबर'),hv=HI_V[g.v]||g.v;return `Namaste!\n\nYou are invited to *${g.n}* at Bal Vidya Mandir, Sambhal.\n\nDate: ${g.d} 2026\nTime: ${g.t}\nVenue: ${g.v}\n\nValid for 2 persons only.\nPlease carry your Aadhaar card with you.\n\nPlease keep the attached invitation card with you for entry.\n\nRegards,\nBal Vidya Mandir\n\n──────────\n\nनमस्ते!\n\nआपको बाल विद्या मंदिर, संभल में *${g.n}* के लिए आमंत्रित किया जाता है।\n\nदिनांक: ${hd} 2026\nसमय: ${g.t}\nस्थान: ${hv}\n\nकेवल 2 व्यक्तियों के लिए मान्य।\nकृपया अपना आधार कार्ड साथ लाएँ।\n\nकृपया प्रवेश के लिए संलग्न निमंत्रण कार्ड अपने साथ रखें।\n\nसादर,\nबाल विद्या मंदिर`};
+const FOOT=['Please keep this invitation card with you for entry.'], FOOT_Y=1500, FOOT_S=36;
+const FONT=n=>'bold '+n+'px "Noto Sans Devanagari","Mangal","Nirmala UI",Arial,sans-serif';
+const CONFIG={apiKey:"AIzaSyD9FUp619B7DUGse0yPLIKFlXwOzzORGuM",authDomain:"tri-utsav-2026.firebaseapp.com",databaseURL:"https://tri-utsav-2026-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"tri-utsav-2026",storageBucket:"tri-utsav-2026.firebasestorage.app",messagingSenderId:"131714491187",appId:"1:131714491187:web:c4d1d6b894b253eb67d446"};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tm=t=>t?new Date(t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'';
+const say=(el,m,t)=>{el.className='msg show';el.style.background=t==='err'?'#fee2e2':t==='ok'?'#dcfce7':'#eef2f1';el.textContent=m};
+function norm(r){let s=String(r==null?'':r).trim();if(/^\d+\.0+$/.test(s))s=s.replace(/\.0+$/,'');return s.replace(/[.#$\[\]\/]/g,'_')}
+const mob=r=>{let s=String(r||'').replace(/\D/g,'');if(s.length>10)s=s.slice(-10);return s};
+const pick=(row,keys)=>{for(const k of keys)if(row[k]!=null&&String(row[k]).trim()!=='')return String(row[k]).trim();return ''};
+
+firebase.initializeApp(CONFIG);const db=firebase.database();
+let ST={},EN={},CFG={},cfgOk=false,tick=0;const PREP={};
+
+// ── live listeners (small nodes only) ──
+db.ref('.info/connected').on('value',s=>{$('dot').className='dot'+(s.val()?' on':'');$('dbt').textContent=s.val()?'Live · connected':'Offline — reconnecting…'});
+db.ref('st').on('value',s=>{ST=s.val()||{};paint()});
+db.ref('entered').on('value',s=>{EN=s.val()||{};paint();liveCheck()});
+function paint(){if(tick)return;tick=requestAnimationFrame(()=>{tick=0;renderAll()})}
+
+async function loadCfg(force){if(cfgOk&&!force)return;const s=await db.ref('groupconfigs').once('value');CFG=s.val()||{};cfgOk=true}
+
+// ── tabs ──
+let mode=new URLSearchParams(location.search).get('mode');
+function go(p){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('on',x.id==='panel-'+p));p==='scan'?startCam():stopCam();if(p==='setup')renderSetup();if(p==='admin')fillPos()}
+$('nav').onclick=e=>{if(e.target.dataset.p)go(e.target.dataset.p)};
+if(mode==='gate'){$('nav').style.display='none';go('scan')}
+if(mode==='admin'){$('nav').querySelector('[data-p=scan]').style.display='none'}
+
+// ── admin render ──
+function enList(){return Object.keys(EN).map(a=>Object.assign({a},EN[a])).sort((x,y)=>(y.at||'').localeCompare(x.at||''))}
+function renderAll(){
+  const all=Object.keys(ST),total=all.length,en=Object.keys(EN).length,E=$('ev').value,evk=all.filter(k=>ST[k].gid===E),evEn=evk.filter(k=>EN[k]).length;
+  $('tEn').textContent=evEn;$('tAll').textContent=evk.length;$('tLeft').textContent=Math.max(0,evk.length-evEn);$('scCnt').textContent=en+' / '+total;
+  const mine=$('mini');if(mine){mine.innerHTML=enList().slice(0,5).map(e=>`<div>${esc(e.name)} · Gate ${esc(e.gate)} · ${tm(e.at)}</div>`).join('')||'—'}
+  if(!$('panel-admin').classList.contains('on'))return;
+  {const pc=evk.length?Math.round(evEn/evk.length*100):0;$('entGrid').innerHTML=`<div class="gc"><div class="n">${evEn} / ${evk.length} entered (${pc}%)</div><div class="bar"><i style="width:${pc}%"></i></div></div>`;$('leEv').textContent=$('elEv').textContent=G[E].n+' · '+G[E].d+' '+G[E].t}
+  const f=$('enF').value.trim().toLowerCase(),L=enList().filter(e=>(e.gid||(ST[e.a]&&ST[e.a].gid))===E),now=Date.now();
+  const bd=e=>e?'<b style="color:#15803d">ENTERED</b>':'<b style="color:#b91c1c">NOT ENTERED</b>';
+  const pr=(e,n,s)=>`<tr class="${e&&now-new Date(e.at)<8000?'new':''}"><td>${n}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.cls)}</td><td>${esc(s.father)}${s.father&&s.mother?' / ':''}${esc(s.mother)}</td><td>${bd(e)}</td><td>${e?esc(e.gate):'—'}</td><td>${e?tm(e.at):''}</td></tr>`;
+  let html;
+  if(f){const hit=evk.filter(k=>[k,ST[k].name,ST[k].cls,ST[k].mobile,ST[k].father,ST[k].mother].join(' ').toLowerCase().includes(f)).slice(0,60);
+    html=hit.map((k,i)=>pr(EN[k],i+1,ST[k])).join('')||'<tr><td colspan="7" style="color:var(--mut)">No student found</td></tr>'}
+  else html=L.slice(0,300).map((e,i)=>pr(e,L.length-i,e)).join('')||'<tr><td colspan="7" style="color:var(--mut)">No entries yet</td></tr>';
+  $('enBody').innerHTML=html;
+  $('evCnt').textContent=evk.length+' uploaded · '+evk.filter(k=>EN[k]).length+' entered';$('qEv').textContent=G[E].n+' · '+G[E].d+' '+G[E].t;
+  $('evList').innerHTML=evk.slice(0,300).map((k,i)=>{const s=ST[k];return `<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td>${esc(s.father)}${s.father&&s.mother?' / ':''}${esc(s.mother)}</td><td>${esc(s.mobile)}</td><td>${EN[k]?'<b style="color:#15803d">Entered</b>':s.wa?'Sent':''}</td></tr>`}).join('')||'<tr><td colspan="6" style="color:var(--mut)">No students uploaded for this event yet</td></tr>';
+  const q=evk.filter(k=>!ST[k].wa);$('pend').textContent=q.length;
+  $('qBody').innerHTML=q.slice(0,80).map((k,i)=>{const s=ST[k],wa='https://wa.me/91'+s.mobile+'?text='+encodeURIComponent(cap(G[s.gid]||{})+'\n\nStudent: '+s.name+' ('+(s.cls||'')+')\nAdmission No: '+(s.adm||k));
+    return `<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td>${esc(s.mobile)}</td><td><button class="s" style="background:${PREP[k]?'#15803d':'#16a34a'}" data-a="share" data-id="${esc(k)}">${PREP[k]?'Send now ▶':'Prepare card'}</button> <button class="s g" data-a="dl" data-id="${esc(k)}">JPG</button> <a href="${wa}" target="_blank"><button class="s a">WhatsApp</button></a> <button class="s" data-a="sent" data-id="${esc(k)}">Mark sent</button></td></tr>`}).join('')||'<tr><td colspan="5" style="color:var(--mut)">Nothing pending</td></tr>'}
+$('enF').oninput=renderAll;
+$('ev').innerHTML=IDS.map(id=>`<option value="${id}">${esc(G[id].n)} · ${G[id].d} · ${G[id].t}</option>`).join('');
+function fillPos(){const E=$('ev').value,c=CFG[E]||{};$('qyI').value=(c.qr&&c.qr.y!=null)?c.qr.y:G[E].qy;$('fyI').value=c.footY!=null?c.footY:FOOT_Y;$('fsI').value=c.footS!=null?c.footS:FOOT_S;$('cStat').textContent=c.cardDataUrl?'✓ Blank card uploaded for this event':'✗ No blank card for this event: upload it in the Setup tab';$('cStat').style.color=c.cardDataUrl?'var(--ok)':'var(--err)';$('cEv').textContent=G[E].n+' · '+G[E].d+' '+G[E].t}
+let cv0=true;db.ref('cfgver').on('value',()=>{if(cv0){cv0=false;return}cfgOk=false;Object.keys(bases).forEach(k=>delete bases[k]);Object.keys(PREP).forEach(k=>delete PREP[k]);if(mode!=='gate')loadCfg(true).then(()=>{fillPos();paint()})});
+$('ev').onchange=()=>{$('prev').innerHTML='';renderAll();fillPos()};fillPos();if(mode!=='gate')loadCfg().then(fillPos);
+$('btnClr').onclick=async()=>{const E=$('ev').value,ks=Object.keys(ST).filter(k=>ST[k].gid===E),en=ks.filter(k=>EN[k]);
+  if(!ks.length)return say($('upM'),'Nothing to clear for this event.','err');
+  if(!confirm('Delete ALL '+ks.length+' students of "'+G[E].n+' · '+G[E].d+' '+G[E].t+'"?'+(en.length?'\n\n'+en.length+' of them have ALREADY ENTERED. Their entry records will be deleted too.':'')+'\n\nThis cannot be undone.'))return;
+  if(en.length&&!confirm('Final check: delete the '+en.length+' entry records as well?'))return;
+  try{for(let i=0;i<ks.length;i+=150){const up={};ks.slice(i,i+150).forEach(k=>{up['st/'+k]=null;up['entered/'+k]=null});await db.ref().update(up)}
+    ks.forEach(k=>delete PREP[k]);$('prev').innerHTML='';say($('upM'),'Cleared '+ks.length+' students from '+G[E].n+' · '+G[E].d+' '+G[E].t+'. You can upload a fresh Excel now.','ok')}catch(err){say($('upM'),err.message,'err')}};
+$('btnRmCard').onclick=async()=>{const E=$('ev').value;await loadCfg();if(!(CFG[E]||{}).cardDataUrl)return say($('cardM'),'No blank card to remove for this event.','err');
+  if(!confirm('Remove the blank card image of "'+G[E].n+' · '+G[E].d+' '+G[E].t+'"? QR and footer positions are kept. You can upload a new card in Setup.'))return;
+  try{await db.ref('groupconfigs/'+E+'/cardDataUrl').remove();db.ref('cfgver').set(Date.now());if(CFG[E])delete CFG[E].cardDataUrl;delete bases[E];Object.keys(PREP).forEach(k=>{if(ST[k]&&ST[k].gid===E)delete PREP[k]});$('prev').innerHTML='';fillPos();renderAll();say($('cardM'),'Blank card removed for this event.','ok')}catch(err){say($('cardM'),err.message,'err')}};
+$('btnPos').onclick=async()=>{const E=$('ev').value,y=parseInt($('qyI').value,10),fy=parseInt($('fyI').value,10),fz=parseInt($('fsI').value,10);if([y,fy,fz].some(isNaN))return say($('cardM'),'Enter numbers in all three boxes.','err');await loadCfg();await setCfg(E,{qr:{x:G[E].qx,y,size:G[E].qs},footY:fy,footS:fz});say($('cardM'),'Saved. Building preview…');document.querySelector('[data-a=prev]').click()};
+$('op').value=localStorage.getItem('bvm_op')||'';$('op').onchange=e=>localStorage.setItem('bvm_op',e.target.value.trim());
+
+
+// ── upload (batched) ──
+$('btnUp').onclick=async()=>{
+  const fs=$('xf').files,out=[];if(!fs.length)return say($('upM'),'Select the Excel file first.','err');
+  for(const f of fs){const gid=$('ev').value;
+    try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});let ins=0,upd=0,skip=0,up={},c=0;
+      const flush=async()=>{if(c){await db.ref().update(up);up={};c=0}};
+      for(const r of rows){const adm=norm(pick(r,['AdmissionNo','admissionNo','Admission No','AdmNo'])),name=pick(r,['Name','name','StudentName']),m=mob(pick(r,['Mobile','mobile','Phone','MobileNo']));
+        if(!adm||!name||m.length!==10){skip++;continue}
+        const cl=pick(r,['Class','class']),sec=pick(r,['Section','section','Sec']),key=(ST[adm]&&ST[adm].gid!==gid)?adm+'~'+IDS.indexOf(gid):adm,b='st/'+key+'/';
+        Object.assign(up,{[b+'name']:name,[b+'cls']:cl&&sec?cl+'-'+sec:cl||sec,[b+'mobile']:m,[b+'father']:pick(r,['FatherName','fatherName','Father Name','Father']),[b+'mother']:pick(r,['MotherName','motherName','Mother Name','Mother']),[b+'gid']:gid,[b+'adm']:adm});
+        if(ST[key])upd++;else{up[b+'wa']=false;ins++}
+        if(++c>=100)await flush()}
+      await flush();out.push(`✓ ${G[gid].n} (${G[gid].d} ${G[gid].t}) ← ${f.name}: new=${ins}, updated=${upd}, skipped=${skip}`)}catch(e){out.push('✗ '+f.name+': '+e.message)}}
+  say($('upM'),out.join('\n'),out.some(l=>l[0]==='✗')?'err':'ok')};
+
+// ── cards ──
+const li=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Image load failed'));i.src=src});
+const bases={};
+async function qrUrl(t,s){
+  const L=window.QRCode||window.qrcode;
+  if(L&&L.toDataURL){try{return await new Promise((res,rej)=>L.toDataURL(t,{width:s,margin:1,errorCorrectionLevel:'L'},(e,u)=>e?rej(e):res(u)))}catch(e){}}
+  const r=await fetch('https://api.qrserver.com/v1/create-qr-code/?size='+s+'x'+s+'&margin=1&ecc=L&data='+encodeURIComponent(t));
+  if(!r.ok)throw new Error('QR could not be made — check internet and reload');
+  const b=await r.blob();return new Promise(res=>{const f=new FileReader();f.onload=()=>res(f.result);f.readAsDataURL(b)})}
+async function card(adm){
+  await loadCfg();const s=ST[adm];if(!s)throw new Error('Student not found');const g=G[s.gid],c=CFG[s.gid]||{};
+  if(!c.cardDataUrl)throw new Error('No blank card uploaded for '+s.gid+' (Setup tab)');
+  const base=bases[s.gid]&&bases[s.gid].u===c.cardDataUrl?bases[s.gid].i:(bases[s.gid]={u:c.cardDataUrl,i:await li(c.cardDataUrl)}).i;
+  const payload=[adm,s.name,s.cls||'',s.father||'',s.mother||''].join('|');
+  const qs=(c.qr&&c.qr.size)||g.qs,qx=(c.qr&&c.qr.x!=null)?c.qr.x:g.qx,qy=(c.qr&&c.qr.y!=null)?c.qr.y:g.qy;
+  const q=await li(await qrUrl(payload,qs));
+  const W=base.naturalWidth||1240,H=base.naturalHeight||1754,sx=W/1240,sy=H/1754,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const x=cv.getContext('2d');x.drawImage(base,0,0,W,H);
+  const k=Math.round(qs*Math.min(sx,sy));x.fillStyle='#fff';x.fillRect(Math.round(qx*sx)-6,Math.round(qy*sy)-6,k+12,k+12);x.drawImage(q,Math.round(qx*sx),Math.round(qy*sy),k,k);
+  // footer: dark-red banner + white bold text so it is always visible
+  let fs=Math.round(((c.footS!=null)?c.footS:FOOT_S)*sx);x.font=FONT(fs);while(Math.max(...FOOT.map(t=>x.measureText(t).width))>W-140&&fs>14){fs-=2;x.font=FONT(fs)}
+  const lh=fs*1.25,bh=lh*FOOT.length+fs*.7,by=((c.footY!=null)?c.footY:FOOT_Y)*sy;
+  x.fillStyle='#8B0000';x.fillRect(40*sx,by,W-80*sx,bh);x.fillStyle='#FFD54A';x.fillRect(40*sx,by,W-80*sx,5*sy);
+  x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';FOOT.forEach((t,i)=>x.fillText(t,W/2,by+fs*.35+lh*(i+.6)));
+  return cv.toDataURL('image/jpeg',.88)}
+const markSent=id=>db.ref('st/'+id).update({wa:true,waAt:new Date().toISOString(),waBy:($('op').value||'').trim()||'unknown'});
+const save=(url,name)=>{const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove()};
+const fname=k=>k+'_'+String(ST[k].name).replace(/[^\w-]/g,'_')+'.jpg';
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id,g=b.dataset.g||$('ev').value,m=$('cardM');
+  try{
+    if(a==='dl'){b.disabled=true;save(await card(id),fname(id));b.disabled=false}
+    if(a==='sent'){await markSent(id)}
+    if(a==='share'){const s=ST[id];
+      // Step 1: build the card (slow). Step 2: share instantly on a fresh tap, because phones block sharing if it comes after a delay.
+      if(!PREP[id]){b.disabled=true;b.textContent='Preparing…';const u=await card(id);PREP[id]={u,f:new File([await (await fetch(u)).blob()],fname(id),{type:'image/jpeg'})};b.disabled=false;b.textContent='Send now ▶';b.style.background='#15803d';return}
+      const {u,f}=PREP[id],text=cap(G[s.gid]||{})+'\n\nStudent: '+s.name+' ('+(s.cls||'')+')\nAdmission No: '+(s.adm||id);
+      if(!window.isSecureContext||!navigator.canShare||!navigator.canShare({files:[f]})){
+        save(u,fname(id));window.open('https://wa.me/91'+s.mobile+'?text='+encodeURIComponent(text),'_blank');
+        say(m,(window.isSecureContext?'This phone/browser cannot share files.':'Sharing needs the page to be opened with https:// (not a file or http link).')+' The card was downloaded and WhatsApp opened: attach the card, send, then tap Mark sent.','err');return}
+      try{try{await navigator.share({files:[f],text})}catch(er){if(er.name==='AbortError')return;await navigator.share({files:[f]})}
+        delete PREP[id];await markSent(id)}
+      catch(er){if(er.name!=='AbortError'){say(m,'Share failed: '+er.name+' — '+er.message,'err')}}}
+    if(a==='prev'){const k=Object.keys(ST).find(x=>ST[x].gid===g);if(!k)return say(m,'No students in this group yet.','err');say(m,'Building preview…');await loadCfg(true);delete bases[g];const u=await card(k);say(m,'Preview: '+ST[k].name,'ok');$('prev').innerHTML='<img style="max-width:100%;max-height:520px;border-radius:8px;border:1px solid var(--line)" src="'+u+'">'}
+    if(a==='zip'){const ks=Object.keys(ST).filter(x=>ST[x].gid===g);if(!ks.length)return say(m,'No students in this group yet.','err');const z=new JSZip();let i=0;
+      for(const k of ks){say(m,`Building cards ${++i} / ${ks.length}…`);z.file(fname(k),(await card(k)).split(',')[1],{base64:true})}
+      save(URL.createObjectURL(await z.generateAsync({type:'blob'})),g+'.zip');say(m,'ZIP ready: '+ks.length+' cards','ok')}
+  }catch(err){b.disabled=false;say(m,err.message,'err');alert(err.message)}});
+
+// ── setup ──
+async function renderSetup(){await loadCfg(true);
+  $('setList').innerHTML=IDS.map(id=>{const c=CFG[id]||{},y=(c.qr&&c.qr.y!=null)?c.qr.y:G[id].qy,fy=(c.footY!=null)?c.footY:FOOT_Y;return `<div class="row" style="border-bottom:1px solid var(--line);padding-bottom:.5rem"><div style="flex:1;min-width:170px"><b style="font-size:.85rem">${esc(G[id].n)}</b><div style="font-size:.72rem;color:var(--mut)">${id}</div></div><b style="color:${c.cardDataUrl?'var(--ok)':'var(--err)'}">${c.cardDataUrl?'✓ Card':'✗ No card'}</b><div><label>QR Y</label><input type="number" class="qy" data-id="${id}" value="${y}" style="width:90px"></div><div><label>Footer Y</label><input type="number" class="fy" data-id="${id}" value="${fy}" style="width:90px"></div><button class="s" data-id="${id}" data-s="y">Save positions</button><input type="file" accept="image/*" class="cu" data-id="${id}" style="max-width:190px"></div>`}).join('')}
+async function setCfg(id,patch){const p=CFG[id]||{};const n=Object.assign({},p,patch,{groupId:id,updatedAt:new Date().toISOString()});await db.ref('groupconfigs/'+id).update(n);CFG[id]=n;db.ref('cfgver').set(Date.now())}
+$('setList').onclick=async e=>{const id=e.target.dataset.id;if(e.target.dataset.s!=='y')return;const y=parseInt(document.querySelector('.qy[data-id="'+id+'"]').value,10);const fy=parseInt(document.querySelector('.fy[data-id="'+id+'"]').value,10);if(isNaN(y)||isNaN(fy))return;await setCfg(id,{qr:{x:G[id].qx,y,size:G[id].qs},footY:fy});say($('setM'),'Saved for '+id+': QR Y='+y+', Footer Y='+fy+' (reload other devices to use it)','ok')};
+$('setList').onchange=async e=>{if(!e.target.classList.contains('cu'))return;const f=e.target.files[0],id=e.target.dataset.id;if(!f)return;say($('setM'),'Uploading…');
+  try{let u=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)});
+    if(u.length>880000){const im=await li(u),c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);for(let q=.85;q>.3;q-=.1){u=c.toDataURL('image/jpeg',q);if(u.length<880000)break}}
+    const p=CFG[id]||{};await setCfg(id,{cardDataUrl:u,qr:p.qr||{x:G[id].qx,y:G[id].qy,size:G[id].qs}});say($('setM'),'Card saved for '+id,'ok');delete bases[id];Object.keys(PREP).forEach(k=>{if(ST[k]&&ST[k].gid===id)delete PREP[k]});$('prev').innerHTML='';renderSetup();fillPos()}catch(err){say($('setM'),err.message,'err')}};
+$('btnMig').onclick=async()=>{const m=$('migM');say(m,'Reading old data (one time, may take a while)…');
+  try{const v=(await db.ref('students').once('value')).val()||{};let up={},c=0,n=0;
+    const flush=async()=>{if(c){await db.ref().update(up);up={};c=0}};
+    for(const k of Object.keys(v)){const s=v[k],b='st/'+k+'/';
+      Object.assign(up,{[b+'name']:s.name||'',[b+'cls']:s.classSection||'',[b+'mobile']:s.mobile||'',[b+'father']:s.fatherName||'',[b+'mother']:s.motherName||'',[b+'gid']:s.groupId||'',[b+'wa']:!!s.whatsappSent,[b+'waAt']:s.whatsappSentAt||null,[b+'waBy']:s.whatsappSentBy||''});
+      if((s.entryCount||0)>0)up['entered/'+k]={name:s.name||'',cls:s.classSection||'',father:s.fatherName||'',mother:s.motherName||'',gid:s.groupId||'',gate:s.entryGate||'',at:s.lastScanAt||new Date().toISOString()};
+      c++;n++;if(c>=60)await flush()}
+    await flush();say(m,'Migrated '+n+' students.','ok')}catch(e){say(m,e.message,'err')}};
+
+// ── gate scanner ──
+let cur=null,lock=false,cam=null,on=false,AC=null,entering=false;
+function liveCheck(){if(!cur||entering||$('btnEnter').style.display==='none')return;const e=EN[cur.k];if(e){beep(0);show('dup','JUST ENTERED AT ANOTHER GATE / दूसरे गेट से प्रवेश हुआ',info(cur)+`<div class="inf">Gate <b>${esc(e.gate)}</b> at <b>${tm(e.at)}</b></div>`);setTimeout(idle,4500)}}
+$('gate').value=localStorage.getItem('bvm_gate')||'';
+$('gate').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,3);localStorage.setItem('bvm_gate',e.target.value)};
+function beep(ok){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=ok?880:220;o.connect(g);g.connect(AC.destination);g.gain.value=.15;o.start();o.stop(AC.currentTime+(ok?.15:.45))}catch(e){}if(navigator.vibrate)navigator.vibrate(ok?60:[150,80,150])}
+function show(cls,t,h,btn){$('sb').className='sb '+cls;$('sb').style.display='block';$('sT').textContent=t;$('sI').innerHTML=h;$('btnEnter').style.display=btn?'block':'none';$('idle').style.display='none'}
+function idle(){$('sb').style.display='none';$('idle').style.display='block';cur=null;lock=false;$('btnEnter').disabled=false;if(cam&&on)try{cam.resume()}catch(e){}}
+function find(adm){return ST[adm]?adm:(ST[adm.replace(/^0+/,'')]?adm.replace(/^0+/,''):null)}
+function info(s){return `<div class="nm">${esc(s.name)}</div><div class="inf">Class: <b>${esc(s.cls)}</b><br>Father: <b>${esc(s.father||'—')}</b><br>Mother: <b>${esc(s.mother||'—')}</b><br>${esc((G[s.gid]||{}).n||'')} · ${esc((G[s.gid]||{}).t||'')}</div>`}
+function check(raw){raw=String(raw||'').trim().replace(/^\uFEFF/,'');const k=find(norm(raw.split('|')[0]));
+  if(!k){beep(0);show('bad','NOT FOUND / नहीं मिला','Scanned: '+esc(raw.slice(0,80)));setTimeout(idle,3500);return}
+  cur=Object.assign({k},ST[k]);const e=EN[k];
+  if(e){beep(0);show('dup','ALREADY ENTERED / प्रवेश हो चुका',info(cur)+`<div class="inf">Gate <b>${esc(e.gate)}</b> at <b>${tm(e.at)}</b></div>`);setTimeout(idle,4500);return}
+  beep(1);show('ok','FOUND — NOT YET ENTERED',info(cur),true)}
+$('btnEnter').onclick=async()=>{const gate=$('gate').value;if(!/^\d{3}$/.test(gate)){alert('Enter your 3-digit gate code at the top first.');return}
+  if(!$('dot').classList.contains('on')){alert('No internet. Wait until the dot at the top turns green before admitting.');return}
+  if(!cur)return;$('btnEnter').disabled=true;entering=true;const rec={name:cur.name,cls:cur.cls||'',father:cur.father||'',mother:cur.mother||'',gid:cur.gid||'',gate,at:new Date().toISOString()};
+  try{const r=await db.ref('entered/'+cur.k).transaction(c=>c?undefined:rec); // atomic: two gates can never both admit the same family
+    if(r.committed){beep(1);show('good','✅ PARENTS ENTERED',info(cur)+`<div class="inf">Gate ${esc(gate)}</div>`);setTimeout(idle,2200)}
+    else{const e=r.snapshot.val()||{};beep(0);show('dup','ALREADY ENTERED / प्रवेश हो चुका',info(cur)+`<div class="inf">Gate <b>${esc(e.gate)}</b> at <b>${tm(e.at)}</b></div>`);setTimeout(idle,4500)}
+  }catch(err){show('bad','Error',esc(err.message));setTimeout(idle,3500)}finally{entering=false}};
+async function startCam(){if(on||!window.Html5Qrcode)return;try{cam=new Html5Qrcode('reader');await cam.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:260}},t=>{if(lock)return;lock=true;try{cam.pause(true)}catch(e){}$('idle').style.display='none';check(t)},()=>{});on=true;if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){$('idle').textContent='Camera error: '+(e.message||e)}}
+async function stopCam(){if(!cam)return;try{if(on)await cam.stop()}catch(e){}on=false;cam=null}
+$('btnMan').onclick=()=>{const q=$('man').value.trim().toLowerCase();if(!q)return;const k=Object.keys(ST).find(a=>(ST[a].adm||a).toLowerCase()===q||a.toLowerCase()===q||ST[a].mobile===q)||Object.keys(ST).find(a=>(ST[a].name||'').toLowerCase().includes(q));
+  lock=true;try{cam&&cam.pause(true)}catch(e){}k?check(k):(beep(0),show('bad','NOT FOUND / नहीं मिला','No match for "'+esc(q)+'"'),setTimeout(idle,3000));$('man').value=''};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&on&&navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})});
+})();
+</script>
+</body></html>
