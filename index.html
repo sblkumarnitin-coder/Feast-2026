@@ -87,7 +87,9 @@ tr.new td{background:#fef9c3;animation:fade 6s forwards}@keyframes fade{to{backg
   </section>
   <section><h2>3. WhatsApp queue</h2>
     <p class="hint">On a phone: tap <b>Share card</b> → choose WhatsApp → pick the parent's chat (check the mobile number shown) → Send. The student is marked sent automatically and disappears from every device's list.</p>
-    <div class="row"><div><label>Your name</label><input id="op" placeholder="e.g. Priya"></div><b>Event: <span id="qEv"></span></b><b>Pending: <span id="pend">0</span></b></div>
+    <div class="row"><div><label>Your name</label><input id="op" placeholder="e.g. Priya"></div><div><label>Class-Section (one teacher per section)</label><select id="qs" style="max-width:260px"></select></div><b>Pending: <span id="pend">0</span></b></div>
+    <p class="hint" style="margin-bottom:.3rem">Event: <b id="qEv"></b>. Tap a section below (sent / total) or use the box above. Green = section finished.</p>
+    <div id="secSum" class="row" style="gap:.35rem"></div>
     <div class="tw"><table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Mobile</th><th></th></tr></thead><tbody id="qBody"></tbody></table></div>
   </section>
 </div>
@@ -119,8 +121,12 @@ tr.new td{background:#fef9c3;animation:fade 6s forwards}@keyframes fade{to{backg
 const EV=[['Rudbhoomi_08Oct_9to11AM','Rudbhoomi - Sports Fiesta','08 October','09:00 to 11:00 AM','School Ground'],['Abhyuday_08Oct_4to6PM','Abhyuday - Cultural Fiesta','08 October','04:00 to 06:00 PM','Auditorium'],['Alish_09Oct_9to11AM','Alish - Junior Sports Fiesta','09 October','09:00 to 11:00 AM','School Ground'],['Rudbhoomi_09Oct_1230to230PM','Rudbhoomi - Sports Fiesta','09 October','12:30 to 02:30 PM','School Ground'],['Abhyuday_09Oct_4to6PM','Abhyuday - Cultural Fiesta','09 October','04:00 to 06:00 PM','Auditorium'],['Utsav_10Oct_10to1230PM','Utsav - Fun Carnival','10 October','10:00 AM to 12:30 PM','School Ground'],['Utsav_10Oct_130to400PM','Utsav - Fun Carnival','10 October','01:30 to 04:00 PM','School Ground']];
 const G={};EV.forEach(([id,n,d,t,v])=>G[id]={id,n,d,t,v,qx:495,qy:1120,qs:250});
 const IDS=Object.keys(G);
+const ROM={I:1,II:2,III:3,IV:4,V:5,VI:6,VII:7,VIII:8,IX:9,X:10,XI:11,XII:12};
+const rank=c=>{const t=String(c||'').split('-')[0].trim().toUpperCase();return ROM[t]||parseInt(t,10)||99};
+const ARR={'Rudbhoomi_08Oct_9to11AM':'08:30 AM','Abhyuday_08Oct_4to6PM':'03:30 PM','Alish_09Oct_9to11AM':'08:30 AM','Rudbhoomi_09Oct_1230to230PM':'12:00 PM','Abhyuday_09Oct_4to6PM':'03:30 PM','Utsav_10Oct_10to1230PM':'09:30 AM','Utsav_10Oct_130to400PM':'01:00 PM'};
+IDS.forEach(i=>G[i].a=ARR[i]);
 const HI_V={'School Ground':'विद्यालय मैदान','Auditorium':'सभागार'};
-const cap=g=>{const hd=g.d.replace('October','अक्टूबर'),hv=HI_V[g.v]||g.v;return `Namaste!\n\nYou are invited to *${g.n}* at Bal Vidya Mandir, Sambhal.\n\nDate: ${g.d} 2026\nTime: ${g.t}\nVenue: ${g.v}\n\nValid for 2 persons only.\nPlease carry your Aadhaar card with you.\n\nPlease keep the attached invitation card with you for entry.\n\nRegards,\nBal Vidya Mandir\n\n──────────\n\nनमस्ते!\n\nआपको बाल विद्या मंदिर, संभल में *${g.n}* के लिए आमंत्रित किया जाता है।\n\nदिनांक: ${hd} 2026\nसमय: ${g.t}\nस्थान: ${hv}\n\nकेवल 2 व्यक्तियों के लिए मान्य।\nकृपया अपना आधार कार्ड साथ लाएँ।\n\nकृपया प्रवेश के लिए संलग्न निमंत्रण कार्ड अपने साथ रखें।\n\nसादर,\nबाल विद्या मंदिर`};
+const cap=g=>{const ha=(g.a||g.t).replace('AM','पूर्वाह्न').replace('PM','अपराह्न'),hd=g.d.replace('October','अक्टूबर'),hv=HI_V[g.v]||g.v;return `Namaste!\n\nYou are invited to *${g.n}* at Bal Vidya Mandir, Sambhal.\n\nDate: ${g.d} 2026\nTime: ${g.a||g.t}\nVenue: ${g.v}\n\nValid for 2 persons only.\nPlease carry your Aadhaar card with you.\n\nPlease keep the attached invitation card with you for entry.\n\nRegards,\nBal Vidya Mandir\n\n──────────\n\nनमस्ते!\n\nआपको बाल विद्या मंदिर, संभल में *${g.n}* के लिए आमंत्रित किया जाता है।\n\nदिनांक: ${hd} 2026\nसमय: ${ha}\nस्थान: ${hv}\n\nकेवल 2 व्यक्तियों के लिए मान्य।\nकृपया अपना आधार कार्ड साथ लाएँ।\n\nकृपया प्रवेश के लिए संलग्न निमंत्रण कार्ड अपने साथ रखें।\n\nसादर,\nबाल विद्या मंदिर`};
 const FOOT=['Please keep this invitation card with you for entry.'], FOOT_Y=1500, FOOT_S=36;
 const FONT=n=>'bold '+n+'px "Noto Sans Devanagari","Mangal","Nirmala UI",Arial,sans-serif';
 const CONFIG={apiKey:"AIzaSyD9FUp619B7DUGse0yPLIKFlXwOzzORGuM",authDomain:"tri-utsav-2026.firebaseapp.com",databaseURL:"https://tri-utsav-2026-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"tri-utsav-2026",storageBucket:"tri-utsav-2026.firebasestorage.app",messagingSenderId:"131714491187",appId:"1:131714491187:web:c4d1d6b894b253eb67d446"};
@@ -169,10 +175,13 @@ function renderAll(){
   $('enBody').innerHTML=html;
   $('evCnt').textContent=evk.length+' uploaded · '+evk.filter(k=>EN[k]).length+' entered';$('qEv').textContent=G[E].n+' · '+G[E].d+' '+G[E].t;
   $('evList').innerHTML=evk.slice(0,300).map((k,i)=>{const s=ST[k];return `<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td>${esc(s.father)}${s.father&&s.mother?' / ':''}${esc(s.mother)}</td><td>${esc(s.mobile)}</td><td>${EN[k]?'<b style="color:#15803d">Entered</b>':s.wa?'Sent':''}</td></tr>`}).join('')||'<tr><td colspan="6" style="color:var(--mut)">No students uploaded for this event yet</td></tr>';
-  const q=evk.filter(k=>!ST[k].wa);$('pend').textContent=q.length;
-  $('qBody').innerHTML=q.slice(0,80).map((k,i)=>{const s=ST[k],wa='https://wa.me/91'+s.mobile+'?text='+encodeURIComponent(cap(G[s.gid]||{})+'\n\nStudent: '+s.name+' ('+(s.cls||'')+')\nAdmission No: '+(s.adm||k));
+  const secs=[...new Set(evk.map(k=>ST[k].cls||'—'))].sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b)),qs=$('qs'),sg=E+'#'+secs.join('|');
+  if(qs.dataset.sg!==sg){const want=qs.value||localStorage.getItem('bvm_sec')||'';qs.innerHTML='<option value="">All sections</option>'+secs.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');qs.dataset.sg=sg;qs.value=secs.includes(want)?want:''}
+  $('secSum').innerHTML=secs.map(s=>{const t=evk.filter(k=>(ST[k].cls||'—')===s),d=t.filter(k=>ST[k].wa).length;return `<button class="s ${qs.value===s?'':'g'}" data-a="sec" data-s="${esc(s)}" style="${d===t.length?'background:#16a34a':''}">${esc(s)} · ${d}/${t.length}</button>`}).join('');
+  const q=evk.filter(k=>!ST[k].wa&&(!qs.value||(ST[k].cls||'—')===qs.value)).sort((a,b)=>rank(ST[a].cls)-rank(ST[b].cls)||String(ST[a].cls||'').localeCompare(String(ST[b].cls||''))||String(ST[a].name).localeCompare(String(ST[b].name)));$('pend').textContent=q.length;
+  $('qBody').innerHTML=q.slice(0,150).map((k,i)=>{const s=ST[k],wa='https://wa.me/91'+s.mobile+'?text='+encodeURIComponent(cap(G[s.gid]||{})+'\n\nStudent: '+s.name+' ('+(s.cls||'')+')\nAdmission No: '+(s.adm||k));
     return `<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td>${esc(s.mobile)}</td><td><button class="s" style="background:${PREP[k]?'#15803d':'#16a34a'}" data-a="share" data-id="${esc(k)}">${PREP[k]?'Send now ▶':'Prepare card'}</button> <button class="s g" data-a="dl" data-id="${esc(k)}">JPG</button> <a href="${wa}" target="_blank"><button class="s a">WhatsApp</button></a> <button class="s" data-a="sent" data-id="${esc(k)}">Mark sent</button></td></tr>`}).join('')||'<tr><td colspan="5" style="color:var(--mut)">Nothing pending</td></tr>'}
-$('enF').oninput=renderAll;
+$('enF').oninput=renderAll;$('qs').onchange=()=>{localStorage.setItem('bvm_sec',$('qs').value);renderAll()};
 $('ev').innerHTML=IDS.map(id=>`<option value="${id}">${esc(G[id].n)} · ${G[id].d} · ${G[id].t}</option>`).join('');
 function fillPos(){const E=$('ev').value,c=CFG[E]||{};$('qyI').value=(c.qr&&c.qr.y!=null)?c.qr.y:G[E].qy;$('fyI').value=c.footY!=null?c.footY:FOOT_Y;$('fsI').value=c.footS!=null?c.footS:FOOT_S;$('cStat').textContent=c.cardDataUrl?'✓ Blank card uploaded for this event':'✗ No blank card for this event: upload it in the Setup tab';$('cStat').style.color=c.cardDataUrl?'var(--ok)':'var(--err)';$('cEv').textContent=G[E].n+' · '+G[E].d+' '+G[E].t}
 let cv0=true;db.ref('cfgver').on('value',()=>{if(cv0){cv0=false;return}cfgOk=false;Object.keys(bases).forEach(k=>delete bases[k]);Object.keys(PREP).forEach(k=>delete PREP[k]);if(mode!=='gate')loadCfg(true).then(()=>{fillPos();paint()})});
@@ -194,15 +203,18 @@ $('op').value=localStorage.getItem('bvm_op')||'';$('op').onchange=e=>localStorag
 $('btnUp').onclick=async()=>{
   const fs=$('xf').files,out=[];if(!fs.length)return say($('upM'),'Select the Excel file first.','err');
   for(const f of fs){const gid=$('ev').value;
-    try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});let ins=0,upd=0,skip=0,up={},c=0;
+    try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});let ins=0,upd=0,skip=0,swp=0,dup=0,dl=[],oth=0,seen=new Set(),bad=[],up={},c=0;const isM=v=>/^\d{10,12}$/.test(String(v).replace(/[\s\-+()]/g,''));
       const flush=async()=>{if(c){await db.ref().update(up);up={};c=0}};
-      for(const r of rows){const adm=norm(pick(r,['AdmissionNo','admissionNo','Admission No','AdmNo'])),name=pick(r,['Name','name','StudentName']),m=mob(pick(r,['Mobile','mobile','Phone','MobileNo']));
-        if(!adm||!name||m.length!==10){skip++;continue}
+      for(const [i,r] of rows.entries()){const adm=norm(pick(r,['AdmissionNo','admissionNo','Admission No','AdmNo'])),name=pick(r,['Name','name','StudentName']),mr=pick(r,['Mobile','mobile','Phone','MobileNo']),fr=pick(r,['FatherName','fatherName','Father Name','Father']);
+        let m=isM(mr)?mob(mr):'',fa=fr;if(!m&&isM(fr)){m=mob(fr);fa=mr;swp++} // Mobile and FatherName columns swapped in the sheet
+        if(adm&&seen.has(adm)){dup++;if(dl.length<8)dl.push(adm+' (row '+(i+2)+')');continue}
+        if(!adm||!name||!m){skip++;if(bad.length<5)bad.push('Row '+(i+2)+': '+(!adm?'admission no. missing':!name?'name missing':'no valid 10-digit mobile ('+(mr||'empty')+')'));continue}
+        seen.add(adm);if(ST[adm]&&ST[adm].gid!==gid)oth++;
         const cl=pick(r,['Class','class']),sec=pick(r,['Section','section','Sec']),key=(ST[adm]&&ST[adm].gid!==gid)?adm+'~'+IDS.indexOf(gid):adm,b='st/'+key+'/';
-        Object.assign(up,{[b+'name']:name,[b+'cls']:cl&&sec?cl+'-'+sec:cl||sec,[b+'mobile']:m,[b+'father']:pick(r,['FatherName','fatherName','Father Name','Father']),[b+'mother']:pick(r,['MotherName','motherName','Mother Name','Mother']),[b+'gid']:gid,[b+'adm']:adm});
+        Object.assign(up,{[b+'name']:name,[b+'cls']:cl&&sec?cl+'-'+sec:cl||sec,[b+'mobile']:m,[b+'father']:fa,[b+'mother']:pick(r,['MotherName','motherName','Mother Name','Mother']),[b+'gid']:gid,[b+'adm']:adm});
         if(ST[key])upd++;else{up[b+'wa']=false;ins++}
         if(++c>=100)await flush()}
-      await flush();out.push(`✓ ${G[gid].n} (${G[gid].d} ${G[gid].t}) ← ${f.name}: new=${ins}, updated=${upd}, skipped=${skip}`)}catch(e){out.push('✗ '+f.name+': '+e.message)}}
+      await flush();out.push((ins+upd?'✓ ':'✗ ')+`${G[gid].n} (${G[gid].d} ${G[gid].t}) ← ${f.name}: new=${ins}, updated=${upd}, duplicates ignored=${dup}, skipped=${skip}`+(dup?`\n   Repeated admission no. counted once (first row kept): `+dl.join(', '):'')+(oth?`\n   ${oth} students are also in another event; each event keeps its own invitation.`:'')+(swp?`\n   ${swp} rows had Mobile and FatherName swapped in the sheet; fixed automatically.`:'')+(bad.length?`\n   Skipped: `+bad.join(' | '):''))}catch(e){out.push('✗ '+f.name+': '+e.message)}}
   say($('upM'),out.join('\n'),out.some(l=>l[0]==='✗')?'err':'ok')};
 
 // ── cards ──
@@ -236,6 +248,7 @@ const fname=k=>k+'_'+String(ST[k].name).replace(/[^\w-]/g,'_')+'.jpg';
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id,g=b.dataset.g||$('ev').value,m=$('cardM');
   try{
     if(a==='dl'){b.disabled=true;save(await card(id),fname(id));b.disabled=false}
+    if(a==='sec'){const v=b.dataset.s;$('qs').value=$('qs').value===v?'':v;localStorage.setItem('bvm_sec',$('qs').value);renderAll();return}
     if(a==='sent'){await markSent(id)}
     if(a==='share'){const s=ST[id];
       // Step 1: build the card (slow). Step 2: share instantly on a fresh tap, because phones block sharing if it comes after a delay.
